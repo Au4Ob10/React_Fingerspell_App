@@ -32,6 +32,7 @@ import { RiCameraFill, RiCameraOffFill } from "react-icons/ri"
 export default function Home() {
   const webcamRef = useRef(null)
   const canvasRef = useRef(null)
+  const [messageBody, setMessageBody] = useState("")
 
   const [camState, setCamState] = useState("on")
 
@@ -52,7 +53,7 @@ export default function Home() {
 
     setInterval(() => {
       detect(net)
-    }, 150)
+    }, 2600)
   }
 
   function _signList() {
@@ -130,11 +131,7 @@ export default function Home() {
         const estimatedGestures = await GE.estimate(hand[0].landmarks, 6.5)
         // document.querySelector('.pose-data').innerHTML =JSON.stringify(estimatedGestures.poseData, null, 2);
 
-        if (gamestate === "started") {
-          document.querySelector("#app-title").innerText =
-            "Make a 👍 gesture with your hand to start"
-        }
-
+       
         if (
           estimatedGestures.gestures !== undefined &&
           estimatedGestures.gestures.length > 0
@@ -146,12 +143,11 @@ export default function Home() {
 
           //setting up game state, looking for thumb emoji
           if (
-            estimatedGestures.gestures[maxConfidence].name === "thumbs_up" &&
             gamestate !== "played"
           ) {
             _signList()
             gamestate = "played"
-            document.getElementById("emojimage").classList.add("play")
+            document.getElementById("detectionStatus").classList.add("play")
             document.querySelector(".tutor-text").innerText =
               "make a hand gesture based on letter shown below"
           } else if (gamestate === "played") {
@@ -168,21 +164,25 @@ export default function Home() {
 
             //game play state
 
-            if (
-              typeof signList[currentSign].src.src === "string" ||
-              signList[currentSign].src.src instanceof String
-            ) {
-              document
-                .getElementById("emojimage")
-                .setAttribute("src", signList[currentSign].src.src)
               if (
                 signList[currentSign].alt ===
                 estimatedGestures.gestures[maxConfidence].name
               ) {
                 currentSign++
               }
+            
               setSign(estimatedGestures.gestures[maxConfidence].name)
+              
+            
+            let letterConfidence = estimatedGestures.gestures[maxConfidence].score
+            let currLetter= estimatedGestures.gestures[maxConfidence].name
+            
+
+            if (currLetter !== "thumbs_up") {
+            setMessageBody(messageBody => messageBody + currLetter)
+            console.log(letterConfidence)
             }
+              
           } else if (gamestate === "finished") {
             return
           }
@@ -244,7 +244,6 @@ export default function Home() {
               <div id="webcam" background="black"></div>
             )}
 
-            {sign ? (
               <div
                 style={{
                   position: "absolute",
@@ -255,43 +254,7 @@ export default function Home() {
                   textAlign: "-webkit-center",
                 }}
               >
-                <Text color="white" fontSize="sm" mb={1}>
-                  detected gestures
-                </Text>
-                <img
-                  alt="signImage"
-                  src={
-                    Signimage[sign]?.src
-                      ? Signimage[sign].src
-                      : "/loveyou_emoji.svg"
-                  }
-                  style={{
-                    height: 30,
-                  }}
-                />
-              </div>
-            ) : (
-              " "
-            )}
-          </Box>
-
-          <canvas id="gesture-canvas" ref={canvasRef} style={{}} />
-
-          <Box
-            id="singmoji"
-            style={{
-              zIndex: 9,
-              position: "fixed",
-              top: "50px",
-              right: "30px",
-            }}
-          ></Box>
-
-          <Image h="150px" objectFit="cover" id="emojimage" />
-          {/* <pre className="pose-data" color="white" style={{position: 'fixed', top: '150px', left: '10px'}} >Pose data</pre> */}
-        </Container>
-
-        <Stack id="start-button" spacing={4} direction="row" align="center">
+                  <Stack id="start-button" spacing={4} direction="row" align="center">
           <Button
             leftIcon={
               camState === "on" ? (
@@ -307,6 +270,36 @@ export default function Home() {
           </Button>
           <About />
         </Stack>
+                <Text color="white" fontSize="sm" mb={1}>
+                  detected gestures
+                  
+                </Text>
+                
+                <Text id= "msgText" color="white" fontSize="sm" mb={1}>
+                  {messageBody}
+                </Text>
+               
+             
+              </div>
+          </Box>
+
+          <canvas id="gesture-canvas" ref={canvasRef} style={{}} />
+
+          <Box
+            id="singmoji"
+            style={{
+              zIndex: 9,
+              position: "fixed",
+              top: "50px",
+              right: "30px",
+            }}
+          ></Box>
+
+         <div id="detectionStatus"></div>
+          {/* <pre className="pose-data" color="white" style={{position: 'fixed', top: '150px', left: '10px'}} >Pose data</pre> */}
+        </Container>
+
+      
       </Box>
     </ChakraProvider>
   )
