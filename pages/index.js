@@ -73,6 +73,8 @@ export default function Home() {
     return password
   }
 
+ 
+
   async function detect(net) {
     // Check data is available
     if (
@@ -88,6 +90,7 @@ export default function Home() {
       // Set video width
       webcamRef.current.video.width = videoWidth
       webcamRef.current.video.height = videoHeight
+      console.log(webcamRef.current.video)
 
       // Set canvas height and width
       canvasRef.current.width = videoWidth
@@ -149,7 +152,7 @@ export default function Home() {
             gamestate = "played"
             document.getElementById("detectionStatus").classList.add("play")
             document.querySelector(".tutor-text").innerText =
-              "make a hand gesture based on letter shown below"
+              "make a hand gestsure based on letter shown below"
           } else if (gamestate === "played") {
             document.querySelector("#app-title").innerText = ""
 
@@ -159,6 +162,8 @@ export default function Home() {
               currentSign = 0
               return
             }
+
+            
 
             // console.log(signList[currentSign].src.src)
 
@@ -177,10 +182,10 @@ export default function Home() {
             let letterConfidence = estimatedGestures.gestures[maxConfidence].score
             let currLetter= estimatedGestures.gestures[maxConfidence].name
             
-
+            
             if (currLetter !== "thumbs_up") {
             setMessageBody(messageBody => messageBody + currLetter)
-            console.log(letterConfidence)
+           
             }
               
           } else if (gamestate === "finished") {
@@ -191,6 +196,7 @@ export default function Home() {
       // Draw hand lines
       const ctx = canvasRef.current.getContext("2d")
       drawHand(hand, ctx)
+      
     }
   }
 
@@ -234,7 +240,7 @@ export default function Home() {
             color="white"
             textAlign="center"
           >
-            🧙‍♀️ Loading the Magic 🧙‍♂️
+            🧙‍♀️ Loading the Maddgic 🧙‍♂️
           </Heading>
 
           <Box id="webcam-container">
