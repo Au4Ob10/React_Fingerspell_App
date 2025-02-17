@@ -32,7 +32,9 @@ import { RiCameraFill, RiCameraOffFill } from "react-icons/ri"
 export default function Home() {
   const webcamRef = useRef(null)
   const canvasRef = useRef(null)
+  const mobileCamRef = useRef(null)
   const [messageBody, setMessageBody] = useState("")
+  const [camType, setCamType] = useState('user')
 
   const [camState, setCamState] = useState("on")
 
@@ -216,11 +218,45 @@ export default function Home() {
     }
   }
 
+  const setCamTypeFunc = () => {
+    camType === 'user' ? setCamType('environment') : setCamState('user')
+  }
+
+
+  useEffect(() => {
+    const enableStream = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: camType } })
+        if (mobileCamRef.current) {
+          mobileCamRef.current.srcObj = stream
+        }
+      } catch (err) {
+        console.error("Error accessing media devices:", err)
+      }
+    }
+
+    enableStream()
+
+    return () => {
+      if (mobileCamRef.current && mobileCamRef.current.srcObj) {
+        const stream = mobileCamRef.current.srcObj;
+        const tracks = stream.getTracks();
+        tracks.forEach(track => track.stop());
+      }
+    }
+  }, [])
+
+
+
+
+
   return (
     <ChakraProvider>
       <Metatags />
       <Box bgColor="#5784BA">
         <Container centerContent maxW="xl" height="100vh" pt="0" pb="0">
+          <Button onClick={setCamTypeFunc}/>
+          <Button onClick={setCamState}/>
           <VStack spacing={4} align="center">
             <Box h="20px"></Box>
             <Heading
@@ -240,7 +276,7 @@ export default function Home() {
             color="white"
             textAlign="center"
           >
-            🧙‍♀️ Loading the Maddgic 🧙‍♂️
+            🧙‍♀️ Loading the Magic 🧙‍♂️
           </Heading>
 
           <Box id="webcam-container">
