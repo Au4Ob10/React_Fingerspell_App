@@ -281,7 +281,10 @@ export default function Home() {
 
           <Box id="webcam-container">
             {camState === "on" ? (
+              <div>
+              <video ref={mobileCamRef}/>
               <Webcam id="webcam" ref={webcamRef} />
+              </div>
             ) : (
               <div id="webcam" background="black"></div>
             )}
