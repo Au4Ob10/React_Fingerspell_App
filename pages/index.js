@@ -29,12 +29,9 @@ import Metatags from "../components/metatags"
 
 import { RiCameraFill, RiCameraOffFill } from "react-icons/ri"
 
-
 export default function Home() {
   const webcamRef = useRef(null)
   const canvasRef = useRef(null)
-  const [videoConstraints, setVideoConstraints] = useState("")
-  const [camType, setCamType] = useState("user")
   const [messageBody, setMessageBody] = useState("")
 
   const [camState, setCamState] = useState("on")
@@ -76,18 +73,16 @@ export default function Home() {
     return password
   }
 
+ 
+
   async function detect(net) {
+    // Check data is available
     if (
       typeof webcamRef.current !== "undefined" &&
       webcamRef.current !== null &&
       webcamRef.current.video.readyState === 4
     ) {
-      let front = false
-
-      document.getElementById("flip-camera").onclick = () => {
-        camType === "user" ? setCamType("environment") : setCamType("user")
-      }
-
+      // Get Video Properties
       const video = webcamRef.current.video
       const videoWidth = webcamRef.current.video.videoWidth
       const videoHeight = webcamRef.current.video.videoHeight
@@ -95,13 +90,7 @@ export default function Home() {
       // Set video width
       webcamRef.current.video.width = videoWidth
       webcamRef.current.video.height = videoHeight
-
-     
-      setVideoConstraints({
-        width: webcamRef.current.videoWidth,
-        height: webcamRef.current.videoHeight,
-        facingMode: camType
-      })
+      console.log(webcamRef.current.video)
 
       // Set canvas height and width
       canvasRef.current.width = videoWidth
@@ -145,6 +134,7 @@ export default function Home() {
         const estimatedGestures = await GE.estimate(hand[0].landmarks, 6.5)
         // document.querySelector('.pose-data').innerHTML =JSON.stringify(estimatedGestures.poseData, null, 2);
 
+       
         if (
           estimatedGestures.gestures !== undefined &&
           estimatedGestures.gestures.length > 0
@@ -155,7 +145,9 @@ export default function Home() {
           )
 
           //setting up game state, looking for thumb emoji
-          if (gamestate !== "played") {
+          if (
+            gamestate !== "played"
+          ) {
             _signList()
             gamestate = "played"
             document.getElementById("detectionStatus").classList.add("play")
@@ -171,26 +163,31 @@ export default function Home() {
               return
             }
 
+            
+
             // console.log(signList[currentSign].src.src)
 
             //game play state
 
-            if (
-              signList[currentSign].alt ===
-              estimatedGestures.gestures[maxConfidence].name
-            ) {
-              currentSign++
-            }
-
-            setSign(estimatedGestures.gestures[maxConfidence].name)
-
-            let letterConfidence =
-              estimatedGestures.gestures[maxConfidence].score
-            let currLetter = estimatedGestures.gestures[maxConfidence].name
-
+              if (
+                signList[currentSign].alt ===
+                estimatedGestures.gestures[maxConfidence].name
+              ) {
+                currentSign++
+              }
+            
+              setSign(estimatedGestures.gestures[maxConfidence].name)
+              
+            
+            let letterConfidence = estimatedGestures.gestures[maxConfidence].score
+            let currLetter= estimatedGestures.gestures[maxConfidence].name
+            
+            
             if (currLetter !== "thumbs_up") {
-              setMessageBody(messageBody => messageBody + currLetter)
+            setMessageBody(messageBody => messageBody + currLetter)
+           
             }
+              
           } else if (gamestate === "finished") {
             return
           }
@@ -199,6 +196,7 @@ export default function Home() {
       // Draw hand lines
       const ctx = canvasRef.current.getContext("2d")
       drawHand(hand, ctx)
+      
     }
   }
 
@@ -222,7 +220,6 @@ export default function Home() {
     <ChakraProvider>
       <Metatags />
       <Box bgColor="#5784BA">
-        <Button id="flip-camera">Flip Phone Camera</Button>
         <Container centerContent maxW="xl" height="100vh" pt="0" pb="0">
           <VStack spacing={4} align="center">
             <Box h="20px"></Box>
@@ -243,55 +240,53 @@ export default function Home() {
             color="white"
             textAlign="center"
           >
-            🧙‍♀️ Loading the Magic 🧙‍♂️
+            🧙‍♀️ Loading the Maddgic 🧙‍♂️
           </Heading>
 
           <Box id="webcam-container">
             {camState === "on" ? (
-              <Webcam id="webcam" ref={webcamRef} videoConstraints={videoConstraints}/>
+              <Webcam id="webcam" ref={webcamRef} />
             ) : (
               <div id="webcam" background="black"></div>
             )}
 
-            <div
-              style={{
-                position: "absolute",
-                marginLeft: "auto",
-                marginRight: "auto",
-                right: "calc(50% - 50px)",
-                bottom: 100,
-                textAlign: "-webkit-center",
-              }}
-            >
-              <Stack
-                id="start-button"
-                spacing={4}
-                direction="row"
-                align="center"
+              <div
+                style={{
+                  position: "absolute",
+                  marginLeft: "auto",
+                  marginRight: "auto",
+                  right: "calc(50% - 50px)",
+                  bottom: 100,
+                  textAlign: "-webkit-center",
+                }}
               >
-                <Button
-                  leftIcon={
-                    camState === "on" ? (
-                      <RiCameraFill size={20} />
-                    ) : (
-                      <RiCameraOffFill size={20} />
-                    )
-                  }
-                  onClick={turnOffCamera}
-                  colorScheme="orange"
-                >
-                  Camera
-                </Button>
-                <About />
-              </Stack>
-              <Text color="white" fontSize="sm" mb={1}>
-                detected gestures
-              </Text>
-
-              <Text id="msgText" color="white" fontSize="sm" mb={1}>
-                {messageBody}
-              </Text>
-            </div>
+                  <Stack id="start-button" spacing={4} direction="row" align="center">
+          <Button
+            leftIcon={
+              camState === "on" ? (
+                <RiCameraFill size={20} />
+              ) : (
+                <RiCameraOffFill size={20} />
+              )
+            }
+            onClick={turnOffCamera}
+            colorScheme="orange"
+          >
+            Camera
+          </Button>
+          <About />
+        </Stack>
+                <Text color="white" fontSize="sm" mb={1}>
+                  detected gestures
+                  
+                </Text>
+                
+                <Text id= "msgText" color="white" fontSize="sm" mb={1}>
+                  {messageBody}
+                </Text>
+               
+             
+              </div>
           </Box>
 
           <canvas id="gesture-canvas" ref={canvasRef} style={{}} />
@@ -306,9 +301,11 @@ export default function Home() {
             }}
           ></Box>
 
-          <div id="detectionStatus"></div>
+         <div id="detectionStatus"></div>
           {/* <pre className="pose-data" color="white" style={{position: 'fixed', top: '150px', left: '10px'}} >Pose data</pre> */}
         </Container>
+
+      
       </Box>
     </ChakraProvider>
   )
