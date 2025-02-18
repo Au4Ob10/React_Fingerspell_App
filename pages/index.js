@@ -32,10 +32,11 @@ import { RiCameraFill, RiCameraOffFill } from "react-icons/ri"
 export default function Home() {
   const webcamRef = useRef(null)
   const canvasRef = useRef(null)
-  const mobileCamRef = useRef(null)
+  const streamRef = useRef(null)
+  // const mobileCamRef = useRef(null)
   const [messageBody, setMessageBody] = useState("")
-  const [camType, setCamType] = useState('user')
-
+  const [camType, setCamType] = useState("user")
+  const [camStream, setCamStream] = useState(null)
   const [camState, setCamState] = useState("on")
 
   const [sign, setSign] = useState(null)
@@ -74,8 +75,6 @@ export default function Home() {
     const password = shuffle(Signpass)
     return password
   }
-
- 
 
   async function detect(net) {
     // Check data is available
@@ -136,7 +135,6 @@ export default function Home() {
         const estimatedGestures = await GE.estimate(hand[0].landmarks, 6.5)
         // document.querySelector('.pose-data').innerHTML =JSON.stringify(estimatedGestures.poseData, null, 2);
 
-       
         if (
           estimatedGestures.gestures !== undefined &&
           estimatedGestures.gestures.length > 0
@@ -147,14 +145,12 @@ export default function Home() {
           )
 
           //setting up game state, looking for thumb emoji
-          if (
-            gamestate !== "played"
-          ) {
+          if (gamestate !== "played") {
             _signList()
             gamestate = "played"
             document.getElementById("detectionStatus").classList.add("play")
             document.querySelector(".tutor-text").innerText =
-              "make a hand gestsure based on letter shown below"
+              "make a hand gesture based on letter shown below"
           } else if (gamestate === "played") {
             document.querySelector("#app-title").innerText = ""
 
@@ -165,31 +161,26 @@ export default function Home() {
               return
             }
 
-            
-
             // console.log(signList[currentSign].src.src)
 
             //game play state
 
-              if (
-                signList[currentSign].alt ===
-                estimatedGestures.gestures[maxConfidence].name
-              ) {
-                currentSign++
-              }
-            
-              setSign(estimatedGestures.gestures[maxConfidence].name)
-              
-            
-            let letterConfidence = estimatedGestures.gestures[maxConfidence].score
-            let currLetter= estimatedGestures.gestures[maxConfidence].name
-            
-            
-            if (currLetter !== "thumbs_up") {
-            setMessageBody(messageBody => messageBody + currLetter)
-           
+            if (
+              signList[currentSign].alt ===
+              estimatedGestures.gestures[maxConfidence].name
+            ) {
+              currentSign++
             }
-              
+
+            setSign(estimatedGestures.gestures[maxConfidence].name)
+
+            let letterConfidence =
+              estimatedGestures.gestures[maxConfidence].score
+            let currLetter = estimatedGestures.gestures[maxConfidence].name
+
+            if (currLetter !== "thumbs_up") {
+              setMessageBody(messageBody => messageBody + currLetter)
+            }
           } else if (gamestate === "finished") {
             return
           }
@@ -198,7 +189,6 @@ export default function Home() {
       // Draw hand lines
       const ctx = canvasRef.current.getContext("2d")
       drawHand(hand, ctx)
-      
     }
   }
 
@@ -219,44 +209,53 @@ export default function Home() {
   }
 
   const setCamTypeFunc = () => {
-    camType === 'user' ? setCamType('environment') : setCamState('user')
+    camType === "user" ? setCamType("environment") : setCamState("user")
   }
 
-
   useEffect(() => {
-    const enableStream = async () => {
+    const cameraStream = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: camType } })
-        if (mobileCamRef.current) {
-          mobileCamRef.current.srcObj = stream
-        }
-      } catch (err) {
-        console.error("Error accessing media devices:", err)
+        const constraints = { video: { facingMode: camType } }
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints)
+        setCamStream(stream)
+      } catch (e) {
+        console.error(`Unable to access stream, Error: ${e}`)
       }
     }
-
-    enableStream()
-
-    return () => {
-      if (mobileCamRef.current && mobileCamRef.current.srcObj) {
-        const stream = mobileCamRef.current.srcObj;
-        const tracks = stream.getTracks();
-        tracks.forEach(track => track.stop());
-      }
-    }
+    cameraStream()
   }, [])
 
+  // useEffect(() => {
+  //   const enableStream = async () => {
+  //     try {
+  //       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: camType } })
+  //       if (mobileCamRef.current) {
+  //         mobileCamRef.current.srcObj = stream
+  //       }
+  //     } catch (err) {
+  //       console.error("Error accessing media devices:", err)
+  //     }
+  //   }
 
+  //   enableStream()
 
-
+  //   return () => {
+  //     if (mobileCamRef.current && mobileCamRef.current.srcObj) {
+  //       const stream = mobileCamRef.current.srcObj;
+  //       const tracks = stream.getTracks();
+  //       tracks.forEach(track => track.stop());
+  //     }
+  //   }
+  // }, [])
 
   return (
     <ChakraProvider>
       <Metatags />
       <Box bgColor="#5784BA">
         <Container centerContent maxW="xl" height="100vh" pt="0" pb="0">
-          <Button onClick={setCamTypeFunc}/>
-          <Button onClick={setCamState}/>
+          <Button onClick={setCamTypeFunc} />
+          <Button onClick={setCamState} />
           <VStack spacing={4} align="center">
             <Box h="20px"></Box>
             <Heading
@@ -281,51 +280,60 @@ export default function Home() {
 
           <Box id="webcam-container">
             {camState === "on" ? (
-              <div>
-              <video ref={mobileCamRef}/>
               <Webcam id="webcam" ref={webcamRef} />
-              </div>
             ) : (
               <div id="webcam" background="black"></div>
             )}
 
-              <div
-                style={{
-                  position: "absolute",
-                  marginLeft: "auto",
-                  marginRight: "auto",
-                  right: "calc(50% - 50px)",
-                  bottom: 100,
-                  textAlign: "-webkit-center",
+            {camStream && (
+              <video
+                autoPlay
+                playsInline
+                ref={video => {
+                  if (video) video.srcObject = camStream
                 }}
+              />
+            )}
+
+            <div
+              style={{
+                position: "absolute",
+                marginLeft: "auto",
+                marginRight: "auto",
+                right: "calc(50% - 50px)",
+                bottom: 100,
+                textAlign: "-webkit-center",
+              }}
+            >
+              <Stack
+                id="start-button"
+                spacing={4}
+                direction="row"
+                align="center"
               >
-                  <Stack id="start-button" spacing={4} direction="row" align="center">
-          <Button
-            leftIcon={
-              camState === "on" ? (
-                <RiCameraFill size={20} />
-              ) : (
-                <RiCameraOffFill size={20} />
-              )
-            }
-            onClick={turnOffCamera}
-            colorScheme="orange"
-          >
-            Camera
-          </Button>
-          <About />
-        </Stack>
-                <Text color="white" fontSize="sm" mb={1}>
-                  detected gestures
-                  
-                </Text>
-                
-                <Text id= "msgText" color="white" fontSize="sm" mb={1}>
-                  {messageBody}
-                </Text>
-               
-             
-              </div>
+                <Button
+                  leftIcon={
+                    camState === "on" ? (
+                      <RiCameraFill size={20} />
+                    ) : (
+                      <RiCameraOffFill size={20} />
+                    )
+                  }
+                  onClick={turnOffCamera}
+                  colorScheme="orange"
+                >
+                  Camera
+                </Button>
+                <About />
+              </Stack>
+              <Text color="white" fontSize="sm" mb={1}>
+                detected gestures
+              </Text>
+
+              <Text id="msgText" color="white" fontSize="sm" mb={1}>
+                {messageBody}
+              </Text>
+            </div>
           </Box>
 
           <canvas id="gesture-canvas" ref={canvasRef} style={{}} />
@@ -340,11 +348,9 @@ export default function Home() {
             }}
           ></Box>
 
-         <div id="detectionStatus"></div>
+          <div id="detectionStatus"></div>
           {/* <pre className="pose-data" color="white" style={{position: 'fixed', top: '150px', left: '10px'}} >Pose data</pre> */}
         </Container>
-
-      
       </Box>
     </ChakraProvider>
   )
