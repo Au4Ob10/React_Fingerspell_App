@@ -5,6 +5,7 @@ import Webcam from "react-webcam"
 import { drawHand } from "../components/handposeutil"
 import * as fp from "fingerpose"
 import Handsigns from "../components/handsigns"
+import TextareaAutosize from 'react-textarea-autosize'
 
 import {
   Text,
@@ -329,12 +330,17 @@ export default function Home() {
               <Text color="white" fontSize="sm" mb={1}>
                 detected gestures
               </Text>
-
-              <Text id="msgText" color="white" fontSize="sm" mb={1}>
+              <Box>
+          <TextareaAutosize name="signText" id="msgText"  minRows={5} defaultValue={messageBody}/>
+          {/* <Text id="msgText" color="white" fontSize="sm" mb={1}>
                 {messageBody}
-              </Text>
+              </Text> */}
+          </Box>
+             
             </div>
           </Box>
+
+        
 
           <canvas id="gesture-canvas" ref={canvasRef} style={{}} />
 
