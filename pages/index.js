@@ -35,7 +35,6 @@ export default function Home() {
   const canvasRef = useRef(null)
   const streamRef = useRef(null)
   // const mobileCamRef = useRef(null)
-  const [confScore, setConfScore] = useState('')
   const [messageBody, setMessageBody] = useState("")
   const [camType, setCamType] = useState("user")
   const [camStream, setCamStream] = useState(null)
@@ -58,7 +57,7 @@ export default function Home() {
 
     setInterval(() => {
       detect(net)
-    }, 1600)
+    }, 2600)
   }
 
   function _signList() {
@@ -174,7 +173,7 @@ export default function Home() {
               currentSign++
             }
 
-            // setSign(estimatedGestures.gestures[maxConfidence].name)
+            setSign(estimatedGestures.gestures[maxConfidence].name)
 
             let letterConfidence =
               estimatedGestures.gestures[maxConfidence].score
@@ -182,7 +181,6 @@ export default function Home() {
 
             if (currLetter !== "thumbs_up") {
               setMessageBody(messageBody => messageBody + currLetter)
-              setConfScore(confScore => confScore + letterConfidence )
             }
           } else if (gamestate === "finished") {
             return
@@ -314,13 +312,26 @@ export default function Home() {
                 direction="row"
                 align="center"
               >
-  
+                <Button
+                  leftIcon={
+                    camState === "on" ? (
+                      <RiCameraFill size={20} />
+                    ) : (
+                      <RiCameraOffFill size={20} />
+                    )
+                  }
+                  onClick={turnOffCamera}
+                  colorScheme="orange"
+                >
+                  Camera
+                </Button>
+                <About />
               </Stack>
               <Text color="white" fontSize="sm" mb={1}>
                 detected gestures
               </Text>
               <Box>
-         
+          <TextareaAutosize name="signText" id="msgText"  minRows={5} defaultValue={messageBody}/>
           {/* <Text id="msgText" color="white" fontSize="sm" mb={1}>
                 {messageBody}
               </Text> */}
@@ -328,18 +339,25 @@ export default function Home() {
              
             </div>
           </Box>
-          <TextareaAutosize name="signText" id="msgText"  minRows={5}  style={{position: 'fixed', bottom: "10px"}}defaultValue={messageBody}/>
-         <Text>{confScore}</Text>
+
+        
 
           <canvas id="gesture-canvas" ref={canvasRef} style={{}} />
-          
+
+          <Box
+            id="singmoji"
+            style={{
+              zIndex: 9,
+              position: "fixed",
+              top: "50px",
+              right: "30px",
+            }}
+          ></Box>
 
           <div id="detectionStatus"></div>
           {/* <pre className="pose-data" color="white" style={{position: 'fixed', top: '150px', left: '10px'}} >Pose data</pre> */}
         </Container>
-       
       </Box>
-    
     </ChakraProvider>
   )
 }
